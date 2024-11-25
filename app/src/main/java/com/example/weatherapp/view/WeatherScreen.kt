@@ -2,13 +2,10 @@ package com.example.weatherapp.view
 
 import android.content.res.Configuration
 import androidx.compose.foundation.Image
-import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxHeight
-import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
@@ -17,7 +14,6 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
-import androidx.compose.foundation.rememberScrollState
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material3.Button
@@ -31,6 +27,7 @@ import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.livedata.observeAsState
 import androidx.compose.runtime.mutableStateOf
@@ -63,11 +60,13 @@ import kotlinx.coroutines.launch
 fun WeatherScreen (modifier: Modifier = Modifier, vm: WeatherViewModel) {
     var latitude by remember { mutableStateOf("") }
     var longitude by remember { mutableStateOf("") }
+    var placeName by remember { mutableStateOf("") }
     val scope = rememberCoroutineScope()
     val snackbarHostState = remember { SnackbarHostState() }
     val keyboardController = LocalSoftwareKeyboardController.current
 
     val weatherResult = vm.weatherResult.observeAsState()
+    val isInternetAvailable = vm.isInternetAvailable.observeAsState()
 
     val config = LocalConfiguration.current
     val mode = remember { mutableStateOf(config.orientation) }
@@ -85,6 +84,12 @@ fun WeatherScreen (modifier: Modifier = Modifier, vm: WeatherViewModel) {
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
 
+                if (isInternetAvailable.value == false) {
+                    LaunchedEffect(snackbarHostState) {
+                        snackbarHostState.showSnackbar("No internet connection")
+                    }
+                }
+
                 Row (
                     modifier = Modifier
                         .fillMaxWidth()
@@ -93,7 +98,7 @@ fun WeatherScreen (modifier: Modifier = Modifier, vm: WeatherViewModel) {
                     horizontalArrangement = Arrangement.SpaceEvenly
                 ) {
                     // Latitude TextField
-                    OutlinedTextField(
+                    /*OutlinedTextField(
                         modifier = Modifier.weight(1f),
                         value = latitude,
                         onValueChange = {
@@ -112,10 +117,10 @@ fun WeatherScreen (modifier: Modifier = Modifier, vm: WeatherViewModel) {
                         },
                         label = { Text(text = "Longitude") },
                     )
-                    Spacer(modifier = Modifier.width(8.dp))
+                    Spacer(modifier = Modifier.width(8.dp))*/
 
                     // Search IconButton
-                    IconButton(onClick = {
+                    /*IconButton(onClick = {
                         val lat = latitude.toDoubleOrNull()
                         val lon = longitude.toDoubleOrNull()
                         if (lat != null && lon != null) {
@@ -134,16 +139,34 @@ fun WeatherScreen (modifier: Modifier = Modifier, vm: WeatherViewModel) {
                             imageVector = Icons.Default.Search,
                             contentDescription = "Search by coordinates"
                         )
+                    }*/
+
+                    OutlinedTextField(
+                        modifier = Modifier.weight(1f),
+                        value = placeName,
+                        onValueChange = {
+                            placeName = it
+                        },
+                        label = { Text(text = "Place Name") },
+                    )
+                    Spacer(modifier = Modifier.width(8.dp))
+
+                    IconButton(onClick = {
+                        vm.getData(placeName)
+                        keyboardController?.hide()
+                    }) {
+                        Icon(
+                            imageVector = Icons.Default.Search,
+                            contentDescription = "Search by place"
+                        )
                     }
                 }
 
                 /*Button(onClick = {
-                    vm.getData(52.52, 13.41)
+                    vm.fetchCoordinatesForPlace("berlin")
                 }) {
                     Text(text = "Generate eventValues")
                 }*/
-
-                //WeatherIcon(weatherCode = 48, iconSize = 40)
 
                 when(val result = weatherResult.value) {
                     is NetworkResponse.Error -> {

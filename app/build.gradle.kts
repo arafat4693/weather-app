@@ -62,4 +62,8 @@ dependencies {
     implementation ("com.squareup.retrofit2:converter-gson:$retrofitVersion")
 
     implementation("androidx.compose.runtime:runtime-livedata:1.7.5")
+
+    implementation("androidx.lifecycle:lifecycle-viewmodel-compose:2.8.5")
+
+    implementation("androidx.datastore:datastore-preferences:1.1.1")
 }
